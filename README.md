@@ -1,7 +1,7 @@
 > [!NOTE]
-> **非官方「去赞助商」构建版。**
-> 安装、升级、自动构建机制、常见问题都在 **[GUIDE.md](GUIDE.md)**；改动范围见 [NOTICE.md](NOTICE.md)。
-> 上游项目：<https://github.com/MHSanaei/3x-ui> ｜ 许可证：GPL-3.0
+> **Unofficial sponsor-free build.**
+> Install, upgrade and automation notes: **[GUIDE.md](GUIDE.md)**. Changes: [NOTICE.md](NOTICE.md).
+> Upstream: <https://github.com/MHSanaei/3x-ui> ｜ License: GPL-3.0
 
 [English](/README.md) | [فارسی](/README.fa_IR.md) | [العربية](/README.ar_EG.md) | [中文](/README.zh_CN.md) | [Español](/README.es_ES.md) | [Русский](/README.ru_RU.md) | [Türkçe](/README.tr_TR.md)
 
