@@ -182,7 +182,9 @@ curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-l
    `SponsorSlot` / `SponsorCard` / `SponsorsPage` / `SponsorList` / `/sponsors` 残留
 4. 运行 `scripts/harden-menu.py` 加固 `x-ui.sh`：禁用 `install` / `update` / `update_dev` /
    `update_menu` / `legacy_version` 五个入口，发布包里不会再一键装回官方版
-5. `npm ci` → `npm run gen:zod` → `npm run build`（前端）
+5. 运行 `scripts/apply-lite.py`：把面板自更新指向本仓库（`update-lite.sh` + 本仓库 Releases API），
+   并去掉 dev 频道分支；补丁未生效时构建直接失败
+6. `npm ci` → `npm run gen:zod` → `npm run build`（前端）
 5. `CGO_ENABLED=1 go build` 静态编译（`netgo` / `osusergo` / `sqlite_omit_load_extension`）
 6. **运行期冒烟**：启动面板，断言 `GET /` = 200 且 `GET /sponsors` = 404，否则构建失败
 7. 下载 Xray 内核、mtg-multi、geoip/geosite，打包
