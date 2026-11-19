@@ -4,12 +4,14 @@
 set -euo pipefail
 
 REPO="AnonymousFamily/3x-ui-lite"
-# Default to the newest release so automatic builds are picked up; pin with
-# XUI_RELEASE_TAG=v3.11.0-nosponsor when a specific version is needed.
+# Pick the highest v*-nosponsor tag, not /releases/latest: "latest" follows the
+# publish time, so back-filling an older version would win there.
+# Pin with XUI_RELEASE_TAG=v3.11.0-nosponsor when a specific build is needed.
 TAG="${XUI_RELEASE_TAG:-}"
 if [ -z "$TAG" ]; then
-  TAG=$(curl -fsSL -o /dev/null -w '%{url_effective}' --max-time 20 \
-    "https://github.com/$REPO/releases/latest" 2>/dev/null | sed -n 's#.*/tag/##p')
+  TAG=$(curl -fsSL --max-time 20 "https://api.github.com/repos/$REPO/releases?per_page=100" 2>/dev/null \
+    | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+    | grep -- '-nosponsor$' | sort -V | tail -1)
 fi
 [ -n "$TAG" ] || TAG="v3.11.0-nosponsor"
 VER="${TAG#v}"

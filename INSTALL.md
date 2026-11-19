@@ -96,8 +96,8 @@ sudo x-ui restart-xray
 
 ## 升级
 
-重跑同一条命令即可（会备份旧二进制、保留数据库与设置）。脚本默认安装**最新 release**，
-所以上游出新版后重跑就是升级：
+重跑同一条命令即可（会备份旧二进制、保留数据库与设置）。脚本会挑**版本号最高**的 release
+（不是「最近发布」的，避免补发旧版本时装错），所以上游出新版后重跑就是升级：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash
