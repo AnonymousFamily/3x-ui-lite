@@ -31,6 +31,44 @@ curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/ins
 
 数据始终在 `/etc/x-ui/x-ui.db`，升级不会动它。
 
+## 常见问题
+
+### 服务起不来，日志里是 `status=203/EXEC`
+
+systemd 无法执行 `/usr/local/x-ui/x-ui`，RHEL/Oracle Linux 上几乎都是 SELinux 标签问题：
+
+```bash
+ls -Z /usr/local/x-ui/x-ui            # 若显示 user_tmp_t / tmp_t 就是它
+sudo restorecon -Rv /usr/local/x-ui
+sudo systemctl reset-failed x-ui
+sudo systemctl restart x-ui
+```
+
+脚本 2026-11-20 之后的版本已改为直接解压到安装目录并执行 `restorecon`，不会再出现。
+
+### 2053 打不开
+
+```bash
+sudo ss -lntp | grep 2053
+sudo firewall-cmd --add-port=2053/tcp --permanent && sudo firewall-cmd --reload   # RHEL 系
+sudo ufw allow 2053/tcp                                                            # Debian 系
+```
+
+云服务器还要在控制台安全组放行。
+
+### 忘记面板账号
+
+`sudo x-ui` → 菜单 `7`（Reset Username & Password）。
+
+### Xray 没运行
+
+```bash
+systemctl status x-ui --no-pager
+sudo journalctl -u x-ui -n 100 --no-pager
+ls -l /usr/local/x-ui/bin/
+sudo x-ui restart-xray
+```
+
 ## 升级
 
 重跑同一条命令即可（会备份旧二进制、保留数据库与设置）：

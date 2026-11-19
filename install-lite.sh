@@ -130,12 +130,17 @@ say "== Installing to $DIR =="
 stop_panel
 install -d "$DIR"
 if [ -f "$DIR/x-ui" ]; then
-  cp -a "$DIR/x-ui" "$DIR/x-ui.bak.$(date +%Y%m%d-%H%M%S)"
+  cp -p "$DIR/x-ui" "$DIR/x-ui.bak.$(date +%Y%m%d-%H%M%S)"
   ok "previous binary backed up"
 fi
-cp -a "$TMP/$PKG/." "$DIR/"
+# Unpack straight into place: cp -a would carry the /tmp SELinux label, and
+# systemd then refuses to exec the binary (status=203/EXEC).
+tar -xzf "$TMP/$TARBALL" -C "$DIR" --strip-components=1
 chmod +x "$DIR/x-ui" "$DIR/x-ui.sh"
 find "$DIR/bin" -maxdepth 1 -type f -exec chmod +x {} \; 2>/dev/null || true
+if command -v restorecon >/dev/null 2>&1; then
+  restorecon -R "$DIR" >/dev/null 2>&1 || true
+fi
 ok "files installed"
 
 if [ -n "$PREFIX" ]; then
@@ -178,12 +183,15 @@ fi
 
 systemctl daemon-reload
 systemctl enable x-ui >/dev/null 2>&1
+systemctl reset-failed x-ui >/dev/null 2>&1 || true
 systemctl restart x-ui
 sleep 2
 if systemctl is-active --quiet x-ui; then
   ok "service running"
 else
-  die "service failed to start, check: journalctl -u x-ui -n 50 --no-pager"
+  warn "service failed to start; last log lines:"
+  journalctl -u x-ui -n 30 --no-pager 2>/dev/null || true
+  die "fix the error above, then: systemctl restart x-ui"
 fi
 
 # --- summary ---------------------------------------------------------------
