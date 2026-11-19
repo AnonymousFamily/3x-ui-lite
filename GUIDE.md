@@ -160,8 +160,8 @@ sudo firewall-cmd --permanent --add-port=2053/tcp && sudo firewall-cmd --reload 
 curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-lite.sh | sudo bash
 ```
 
-> **不要用面板里的「更新面板」或 `x-ui update`。**
-> 那会下载上游官方包并覆盖 `x-ui` 与 `bin/`，赞助商广告会原样回来。
+> 命令行菜单里的 `Install` / `Update` / `Update Menu` / `Legacy` 已禁用（只打印提示并退出）。
+> 但**面板 UI 的「更新面板」按钮仍然有效，不要点** —— 它会把面板换回上游官方版。
 
 ---
 
@@ -176,7 +176,9 @@ curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-l
 2. checkout 上游该 tag 源码
 3. 运行 `scripts/strip-sponsors.py` 去赞助商，并**自检**不存在
    `SponsorSlot` / `SponsorCard` / `SponsorsPage` / `SponsorList` / `/sponsors` 残留
-4. `npm ci` → `npm run gen:zod` → `npm run build`（前端）
+4. 运行 `scripts/harden-menu.py` 加固 `x-ui.sh`：禁用 `install` / `update` / `update_dev` /
+   `update_menu` / `legacy_version` 五个入口，发布包里不会再一键装回官方版
+5. `npm ci` → `npm run gen:zod` → `npm run build`（前端）
 5. `CGO_ENABLED=1 go build` 静态编译（`netgo` / `osusergo` / `sqlite_omit_load_extension`）
 6. **运行期冒烟**：启动面板，断言 `GET /` = 200 且 `GET /sponsors` = 404，否则构建失败
 7. 下载 Xray 内核、mtg-multi、geoip/geosite，打包

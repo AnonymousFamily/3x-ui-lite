@@ -70,6 +70,15 @@ jobs:
         if: steps.up.outputs.exists == 'false'
         run: python3 self/scripts/strip-sponsors.py src
 
+      - name: Harden the menu script
+        if: steps.up.outputs.exists == 'false'
+        run: |
+          set -euo pipefail
+          python3 self/scripts/harden-menu.py src/x-ui.sh
+          grep -q "3X-UI Lite blocks" src/x-ui.sh
+          bash -n src/x-ui.sh
+          echo "menu guards in place"
+
       - name: Set up Go
         if: steps.up.outputs.exists == 'false'
         uses: actions/setup-go@v5

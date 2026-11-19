@@ -75,7 +75,8 @@ curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-l
 curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-lite.sh | sudo bash
 ```
 
-> 不要在面板里点「更新面板」，也不要执行 `x-ui update` —— 那会覆盖成上游官方版本，广告回来。
+> 菜单里的 `Install` / `Update` / `Update Menu` / `Legacy` 已被禁用，执行只会提示改用 `install-lite.sh`。
+> 但**面板设置里的「更新面板」按钮仍然有效，不要点** —— 它会把面板换回官方版。
 
 ## 常用命令
 

@@ -42,6 +42,9 @@
 - 删除未使用的品牌素材与 Windows 资源（`media/`、`winres/`、`windows_files/`、`.vscode/`）
 - README 重写为中文首页（英文见 `README.en.md`），新增本 `CHANGELOG.md` 与 `GUIDE.md`
 - 自动构建频率从每天一次改为**每 6 小时**一次
+- 命令行菜单的 `Install` / `Update` / `Update Menu` / `Legacy` 入口改为提示并拒绝执行，
+  防止误装回官方带广告版本（面板 UI 的「更新面板」按钮不在脚本控制范围内）
+- 自动构建新增「菜单加固」步骤（`scripts/harden-menu.py`），保证发布包里的 `x-ui.sh` 也已禁用这些入口
 
 ---
 

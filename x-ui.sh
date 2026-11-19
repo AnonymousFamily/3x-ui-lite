@@ -129,6 +129,10 @@ before_show_menu() {
 }
 
 install() {
+    LOGE "3X-UI Lite does not ship the upstream installer: it would install the official build with sponsors."
+    LOGI "Install or upgrade with:"
+    LOGI "  curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-lite.sh | sudo bash"
+    return 1
     bash <(curl -Ls https://raw.githubusercontent.com/MHSanaei/3x-ui/main/install.sh)
     if [[ $? == 0 ]]; then
         if [[ $# == 0 ]]; then
@@ -140,6 +144,10 @@ install() {
 }
 
 update() {
+    LOGE "3X-UI Lite does not support in-panel updates: it would replace this build with the upstream one."
+    LOGI "Upgrade with:"
+    LOGI "  curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-lite.sh | sudo bash"
+    return 1
     confirm "This function will update all x-ui components to the latest version, and the data will not be lost. Do you want to continue?" "y"
     if [[ $? != 0 ]]; then
         LOGE "Cancelled"
@@ -156,6 +164,10 @@ update() {
 }
 
 update_dev() {
+    LOGE "3X-UI Lite does not support dev-channel updates: it would replace this build with the upstream one."
+    LOGI "Upgrade with:"
+    LOGI "  curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-lite.sh | sudo bash"
+    return 1
     confirm "This will update x-ui to the latest DEV commit (the rolling 'dev-latest' build, not a stable release). Your data is preserved. Continue?" "y"
     if [[ $? != 0 ]]; then
         LOGE "Cancelled"
@@ -222,6 +234,9 @@ installed_script_url() {
 }
 
 update_menu() {
+    LOGE "Menu self-update is disabled in 3X-UI Lite: it would restore the upstream menu and its install/update entries."
+    LOGI "The menu ships with the panel package; reinstall with install-lite.sh if needed."
+    return 1
     echo -e "${yellow}Updating Menu${plain}"
     confirm "This function will update the menu to the latest changes." "y"
     if [[ $? != 0 ]]; then
@@ -243,6 +258,9 @@ update_menu() {
 }
 
 legacy_version() {
+    LOGE "3X-UI Lite does not install upstream legacy versions."
+    LOGI "Use a release from https://github.com/AnonymousFamily/3x-ui-lite/releases instead."
+    return 1
     echo -n "Enter the panel version (like 2.4.0):"
     read -r tag_version
 
