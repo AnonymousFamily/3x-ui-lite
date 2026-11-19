@@ -154,14 +154,18 @@ sudo firewall-cmd --permanent --add-port=2053/tcp && sudo firewall-cmd --reload 
 
 ## 4. 升级
 
-重跑安装命令即可（自动备份旧二进制、保留数据库）：
+**面板内更新**：版本检查已改为查询**本仓库**的 Release。上游发新版 → 本仓库自动产出
+`v<版本>-nosponsor` → 面板提示有更新 → 点「更新面板」即下载并安装本仓库的包
+（`update-lite.sh`：校验 SHA256、备份旧二进制、重启服务）。不会安装上游版本。
+
+**命令行升级**：
 
 ```bash
 curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-lite.sh | sudo bash
 ```
 
-> 命令行菜单里的 `Install` / `Update` / `Update Menu` / `Legacy` 已禁用（只打印提示并退出）。
-> 但**面板 UI 的「更新面板」按钮仍然有效，不要点** —— 它会把面板换回上游官方版。
+> 命令行菜单里的 `Install` / `Update` / `Update Menu` / `Legacy` 已禁用（只打印提示并退出），
+> 因为它们会去拉上游官方包；面板里的更新按钮走本仓库，不受影响。
 
 ---
 

@@ -45,6 +45,8 @@
 - 命令行菜单的 `Install` / `Update` / `Update Menu` / `Legacy` 入口改为提示并拒绝执行，
   防止误装回官方带广告版本（面板 UI 的「更新面板」按钮不在脚本控制范围内）
 - 自动构建新增「菜单加固」步骤（`scripts/harden-menu.py`），保证发布包里的 `x-ui.sh` 也已禁用这些入口
+- **面板内更新改为跟随本仓库**：版本检查查询本仓库 Release（`v<上游版本>-nosponsor`），
+  更新时运行本仓库的 `update-lite.sh` 安装去赞助商包，不再访问上游安装器
 
 ---
 

@@ -41,7 +41,10 @@ type PanelUpdateInfo struct {
 }
 
 const (
-	panelUpdaterURL      = "https://raw.githubusercontent.com/MHSanaei/3x-ui/main/update.sh"
+	// Updates ship from this fork's own releases, never from upstream: the
+	// upstream package would bring the sponsor placements back.
+	panelUpdateRepo      = "AnonymousFamily/3x-ui-lite"
+	panelUpdaterURL      = "https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/update-lite.sh"
 	maxPanelUpdaterBytes = 2 << 20
 	// devReleaseTag is the fixed-tag rolling pre-release the CI force-moves to the
 	// newest main commit; the dev update channel installs from it.
@@ -126,13 +129,10 @@ func (s *PanelService) RestartPanel(delay time.Duration) error {
 	return nil
 }
 
-// GetUpdateInfo checks GitHub for the latest 3x-ui release. When the dev channel
-// is enabled on a dev build it compares commits against the rolling dev release;
-// otherwise it compares versions against the latest stable tag.
+// GetUpdateInfo checks this fork's GitHub releases for the newest sponsor-free
+// build. The version compared against is the upstream version embedded in the
+// release tag, so "v3.12.0-nosponsor" reads as 3.12.0.
 func (s *PanelService) GetUpdateInfo() (*PanelUpdateInfo, error) {
-	if devChannelActive() {
-		return getDevUpdateInfo()
-	}
 	latest, err := fetchLatestPanelVersion()
 	if err != nil {
 		return nil, err
@@ -178,18 +178,16 @@ func getDevUpdateInfo() (*PanelUpdateInfo, error) {
 	}, nil
 }
 
-// StartUpdate starts the official updater using this panel's own channel
-// setting. Returns the run ID to pass to GetUpdateStatus so the caller can
-// tell this run's result apart from a stale one.
+// StartUpdate runs this fork's updater, which installs the newest
+// sponsor-free release. Upstream's updater is never used.
 func (s *PanelService) StartUpdate() (int64, error) {
-	return s.startUpdate(devChannelActive())
+	return s.startUpdate(false)
 }
 
-// StartUpdateChannel runs the updater against an explicitly chosen channel,
-// overriding the local dev-channel setting. Used by the master node updater so
-// a node can be moved to the dev channel from the central panel.
+// StartUpdateChannel exists for the master node updater; the dev channel is
+// ignored because this fork only publishes stable sponsor-free builds.
 func (s *PanelService) StartUpdateChannel(dev bool) (int64, error) {
-	return s.startUpdate(dev)
+	return s.startUpdate(false)
 }
 
 // GetUpdateStatus reports the outcome of the most recently launched panel
@@ -425,15 +423,21 @@ func fetchLatestPanelVersion() (string, error) {
 	if release.TagName == "" {
 		return "", fmt.Errorf("latest panel release tag is empty")
 	}
-	return release.TagName, nil
+	return panelVersionFromTag(release.TagName), nil
 }
 
-// fetchPanelRelease fetches a release from GitHub. An empty tag resolves the
-// latest stable release; a non-empty tag (e.g. dev-latest) resolves that tag.
+// panelVersionFromTag maps a release tag to the upstream version it carries:
+// "v3.12.0-nosponsor" -> "3.12.0".
+func panelVersionFromTag(tag string) string {
+	return strings.TrimSuffix(strings.TrimPrefix(tag, "v"), "-nosponsor")
+}
+
+// fetchPanelRelease fetches a release from this fork's GitHub repository. An
+// empty tag resolves the latest stable release.
 func fetchPanelRelease(tag string) (*service.Release, error) {
-	url := "https://api.github.com/repos/MHSanaei/3x-ui/releases/latest"
+	url := "https://api.github.com/repos/" + panelUpdateRepo + "/releases/latest"
 	if tag != "" {
-		url = "https://api.github.com/repos/MHSanaei/3x-ui/releases/tags/" + tag
+		url = "https://api.github.com/repos/" + panelUpdateRepo + "/releases/tags/" + tag
 	}
 	client := (&service.SettingService{}).NewProxiedHTTPClient(10 * time.Second)
 	req, reqErr := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)

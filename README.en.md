@@ -56,6 +56,22 @@ Compared to the matching upstream tag (currently `v3.11.0`), only the sponsor ch
 
 Each release ships `nosponsor-v<version>.patch` with the exact source diff.
 
+## Upgrade
+
+Two ways, neither can install the upstream build:
+
+1. **In-panel update** (recommended): when this repo publishes a newer `-nosponsor`
+   release the panel shows an update; clicking it downloads and installs **this repo's**
+   package via `update-lite.sh` (SHA256 check, binary backup, service restart).
+2. **Command line**: re-run the installer.
+
+```bash
+curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-lite.sh | sudo bash
+```
+
+> The menu's `Install` / `Update` / `Update Menu` / `Legacy` entries are disabled because
+> they fetch upstream scripts. The in-panel update button is safe: it only talks to this repo.
+
 ## Automation
 
 The workflow checks upstream every **6 hours** (or on demand), strips the sponsor feature, builds the

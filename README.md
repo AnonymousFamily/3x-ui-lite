@@ -69,14 +69,18 @@ curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-l
 
 ## 升级
 
-重跑安装命令即可（保留 `/etc/x-ui` 数据，自动备份旧二进制）：
+两种方式，都不会装回上游版本：
+
+1. **面板内更新**（推荐）：本仓库出了新的 `-nosponsor` 版本后，面板会提示有更新；
+   点「更新面板」即下载并安装**本仓库**的包（走 `update-lite.sh`，校验 SHA256、自动备份旧二进制并重启）。
+2. **命令行**：重跑安装命令，效果相同。
 
 ```bash
 curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-lite.sh | sudo bash
 ```
 
-> 菜单里的 `Install` / `Update` / `Update Menu` / `Legacy` 已被禁用，执行只会提示改用 `install-lite.sh`。
-> 但**面板设置里的「更新面板」按钮仍然有效，不要点** —— 它会把面板换回官方版。
+> 命令行菜单里的 `Install` / `Update` / `Update Menu` / `Legacy` 已禁用（它们会拉上游官方包）。
+> 面板里的更新按钮走的是本仓库的 Release，可以放心使用。
 
 ## 常用命令
 
