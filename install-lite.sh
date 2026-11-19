@@ -4,8 +4,17 @@
 set -euo pipefail
 
 REPO="AnonymousFamily/3x-ui-lite"
-TAG="v3.11.0-nosponsor"
-PKG="3x-ui-3.11.0-nosponsor"
+# Default to the newest release so automatic builds are picked up; pin with
+# XUI_RELEASE_TAG=v3.11.0-nosponsor when a specific version is needed.
+TAG="${XUI_RELEASE_TAG:-}"
+if [ -z "$TAG" ]; then
+  TAG=$(curl -fsSL -o /dev/null -w '%{url_effective}' --max-time 20 \
+    "https://github.com/$REPO/releases/latest" 2>/dev/null | sed -n 's#.*/tag/##p')
+fi
+[ -n "$TAG" ] || TAG="v3.11.0-nosponsor"
+VER="${TAG#v}"
+VER="${VER%-nosponsor}"
+PKG="3x-ui-${VER}-nosponsor"
 TARBALL="${PKG}-linux-amd64.tar.gz"
 BASE="https://github.com/${REPO}/releases/download/${TAG}"
 DIR="${XUI_INSTALL_DIR:-/usr/local/x-ui}"
@@ -105,7 +114,7 @@ fetch() { # fetch <url> <out>
 }
 
 # --- download + verify -----------------------------------------------------
-say "== Downloading $TARBALL =="
+say "== Downloading $TARBALL (${TAG}) =="
 fetch "$BASE/$TARBALL" "$TMP/$TARBALL" || die "download failed (check network, or set https_proxy)"
 ok "$(du -h "$TMP/$TARBALL" | cut -f1)"
 
