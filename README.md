@@ -1,8 +1,7 @@
 > [!NOTE]
-> **这是 3X-UI `v3.11.0` 的去赞助商构建版本（非官方修改版）。**
-> 仅移除付费赞助位（登录页/仪表盘广告卡、侧边栏「赞助商」页、`/sponsors` 接口与远程 `sponsors.json` 拉取），
-> 其余功能与上游一致；侧边栏 Donate 按钮与 MTProto `ad-tag` 保留。
-> 上游项目：<https://github.com/MHSanaei/3x-ui> ｜ 改动说明：[NOTICE.md](NOTICE.md) ｜ 许可证：GPL-3.0
+> **非官方「去赞助商」构建版。**
+> 安装、升级、自动构建机制、常见问题都在 **[GUIDE.md](GUIDE.md)**；改动范围见 [NOTICE.md](NOTICE.md)。
+> 上游项目：<https://github.com/MHSanaei/3x-ui> ｜ 许可证：GPL-3.0
 
 [English](/README.md) | [فارسی](/README.fa_IR.md) | [العربية](/README.ar_EG.md) | [中文](/README.zh_CN.md) | [Español](/README.es_ES.md) | [Русский](/README.ru_RU.md) | [Türkçe](/README.tr_TR.md)
 
