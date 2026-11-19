@@ -53,13 +53,13 @@ jobs:
 
       - name: Checkout this repository (build script)
         if: steps.up.outputs.exists == 'false'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: self
 
       - name: Checkout upstream at ${{ steps.up.outputs.tag }}
         if: steps.up.outputs.exists == 'false'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: ${{ env.UPSTREAM }}
           ref: ${{ steps.up.outputs.tag }}
@@ -183,25 +183,22 @@ jobs:
           import pathlib, sys
           ver, tag, repo = sys.argv[1], sys.argv[2], sys.argv[3]
           sums = pathlib.Path("dist/SHA256SUMS.txt").read_text(encoding="utf-8").strip()
-          print(f"""## 3X-UI v{ver} — 去除赞助商构建（非官方）
+          print(f"""## 3X-UI v{ver} �?去除赞助商构建（非官方）
 
           - 上游：`MHSanaei/3x-ui` tag `{tag}`
-          - 仅移除付费赞助位：登录页/仪表盘广告卡、侧边栏「赞助商」页、`GET /sponsors` 与 logo 代理、远程 `sponsors.json` 拉取
-          - 其余功能原样保留；许可证 GPL-3.0（见仓库 LICENSE / NOTICE.md）
-          - 构建脚本：`.github/workflows/build-nosponsor.yml` + `scripts/strip-sponsors.py`
+          - 仅移除付费赞助位：登录页/仪表盘广告卡、侧边栏「赞助商」页、`GET /sponsors` �?logo 代理、远�?`sponsors.json` 拉取
+          - 其余功能原样保留；许可证 GPL-3.0（见仓库 LICENSE / NOTICE.md�?          - 构建脚本：`.github/workflows/build-nosponsor.yml` + `scripts/strip-sponsors.py`
 
           ### 附件
 
-          - `3x-ui-{ver}-nosponsor-linux-amd64.tar.gz` — 面板 + Xray + mtg + geo 数据
-          - `nosponsor-v{ver}.patch` — 相对上游的源码改动
-          - `SHA256SUMS.txt`
+          - `3x-ui-{ver}-nosponsor-linux-amd64.tar.gz` �?面板 + Xray + mtg + geo 数据
+          - `nosponsor-v{ver}.patch` �?相对上游的源码改�?          - `SHA256SUMS.txt`
 
           ```
           {sums}
           ```
 
-          ### 一键安装
-
+          ### 一键安�?
           ```bash
           curl -fsSL https://cdn.jsdelivr.net/gh/{repo}@main/install-lite.sh | sudo bash
           ```

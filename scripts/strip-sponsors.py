@@ -147,42 +147,91 @@ edit("tools/openapigen/main.go", strip_openapigen)
 
 
 # ---------------------------------------------------------------- frontend
-def strip_tsx(text):
-    out = []
-    for line in text.split("\n"):
-        if "<SponsorSlot" in line:
+SPONSOR_MARK = re.compile(
+    r"SponsorSlot|SponsorsPage|SponsorCard|sponsorsForSlot|useSponsorsQuery"
+    r"|menu\.sponsors|pages\.sponsors"
+)
+ROUTE_MARK = re.compile(r"""["']/?sponsors["']""")
+UNION_MARK = re.compile(r"""^\s*\|\s*["']sponsors["']\s*$""")
+ICON_MARK = re.compile(r"""^\s*sponsors:\s*\w+,\s*$""")
+
+
+def object_block(lines, i):
+    """Return the (start, end) lines of the `{ ... },` literal around line i.
+
+    Config objects in this repo are one key per line with no nested literals,
+    so matching the nearest bracket lines beats counting braces (strings such
+    as '/sponsors/logo/{name}' would skew a counter).
+    """
+    if lines[i].strip().startswith("{"):
+        return i, i
+    s = i
+    while s >= 0 and lines[s].strip() != "{":
+        s -= 1
+    if s < 0:
+        return i, i
+    e = i
+    while e < len(lines) and lines[e].strip() not in ("},", "};", "}"):
+        e += 1
+    if e >= len(lines):
+        return i, i
+    return s, e
+
+
+def sweep_tsx(text):
+    lines = text.split("\n")
+    out, i = [], 0
+    while i < len(lines):
+        line = lines[i]
+        route = ROUTE_MARK.search(line)
+        hit = SPONSOR_MARK.search(line) or route or UNION_MARK.match(line) or ICON_MARK.match(line)
+        if not hit:
+            out.append(line)
+            i += 1
             continue
-        if re.search(r"from ['\"][^'\"]*(components/sponsor/|lib/sponsors|useSponsorsQuery)", line):
+        if route and re.search(r"(path|key|to)\s*:\s*[\"']/?sponsors[\"']", line):
+            s, e = object_block(lines, i)
+            if s < i:
+                del out[len(out) - (i - s):]  # drop the opener lines already kept
+            i = e + 1
             continue
-        out.append(line)
+        i += 1
     return "\n".join(out)
 
 
-def strip_routes_tsx(text):
-    lines = [l for l in text.split("\n") if "path: '/sponsors'" not in l and "SponsorsPage" not in l]
-    new = "\n".join(lines)
-    body = "\n".join(l for l in new.split("\n") if not l.startswith("import "))
-    if len(re.findall(r"<CrownOutlined", body)) == 0 and "CrownOutlined," in new:
-        new = new.replace("  CrownOutlined,\n", "")
-    return new
+for p in sorted((ROOT / "frontend/src").rglob("*")):
+    if not p.is_file() or p.suffix not in (".ts", ".tsx"):
+        continue
+    if "generated" in p.parts or "node_modules" in p.parts:
+        continue
+    before = p.read_text(encoding="utf-8")
+    after = sweep_tsx(before)
+    if after != before:
+        p.write_text(after, encoding="utf-8", newline="\n")
+        changed.append(f"edit {rel(p)}")
 
-
-def strip_endpoints(text):
+# CrownOutlined was only used by the sponsor entry.
+for p in sorted((ROOT / "frontend/src").rglob("*.tsx")):
+    if "generated" in p.parts or "node_modules" in p.parts:
+        continue
+    text = p.read_text(encoding="utf-8")
+    if len(re.findall(r"\bCrownOutlined\b", text)) != 1:
+        continue
     lines = text.split("\n")
-    for i, line in enumerate(lines):
-        if "path: '/sponsors'" in line:
-            start = i
-            while start > 0 and lines[start].strip() != "{":
-                start -= 1
-            end = i
-            while end < len(lines) - 1 and lines[end].strip() not in ("},", "},"):
-                end += 1
-                if lines[end].strip() == "},":
-                    break
-            del lines[start : end + 1]
-            break
-    return "\n".join(lines)
-
+    kept = []
+    for line in lines:
+        if re.match(r"^\s*CrownOutlined,\s*$", line):
+            kept.append(None)  # drop
+            continue
+        if "CrownOutlined" in line and "import" in line:
+            cleaned = re.sub(r"CrownOutlined,\s*", "", line)
+            kept.append(cleaned)
+            continue
+        kept.append(line)
+    new = "\n".join(l for l in kept if l is not None)
+    if new != text:
+        p.write_text(new, encoding="utf-8", newline="\n")
+        changed.append(f"edit {rel(p)}")
 
 def strip_css(text):
     """Drop rules whose selector mentions sponsor; keep sibling selectors."""
@@ -200,7 +249,6 @@ def strip_css(text):
                 while k >= 0 and not out[k].strip():
                     k -= 1
                 if k >= 0 and out[k].rstrip().endswith(","):
-                    # sibling of a selector list: move the brace up, keep the body
                     out[k] = out[k].rstrip().rstrip(",") + " {"
                 else:
                     skipping = True
@@ -209,15 +257,9 @@ def strip_css(text):
     return "\n".join(out)
 
 
-edit("frontend/src/pages/login/LoginPage.tsx", strip_tsx)
-edit("frontend/src/pages/index/IndexPage.tsx", strip_tsx)
-edit("frontend/src/routes/panelRoutes.tsx", strip_routes_tsx)
-edit("frontend/src/components/command-palette/CommandPalette.tsx", lambda t: re.sub(r"\n\s*'/sponsors': \[[^\]]*\],", "", t))
-edit("frontend/src/api/queryKeys.ts", lambda t: re.sub(r"\n\s*sponsors: \(\) => \['sponsors'\] as const,", "", t))
-edit("frontend/src/pages/api-docs/endpoints.ts", strip_endpoints)
-edit("frontend/vite.config.js", lambda t: t.replace("sponsors|", ""))
 edit("frontend/src/pages/login/LoginPage.css", strip_css)
 edit("frontend/src/styles/page-shell.css", strip_css)
+edit("frontend/vite.config.js", lambda t: t.replace("sponsors|", ""))
 
 
 # ---------------------------------------------------------------- i18n
