@@ -99,5 +99,4 @@ sudo journalctl -u x-ui -n 50 --no-pager | grep -i Username
 
 基于 [MHSanaei/3x-ui](https://github.com/MHSanaei/3x-ui)（GPL-3.0）修改，遵循 GPL-3.0 发布，
 版权归上游作者所有；改动范围见 [NOTICE.md](NOTICE.md)。
-上游原始说明（含全部功能文档）存档于 [README.upstream.md](README.upstream.md) 与
-[README.upstream.zh_CN.md](README.upstream.zh_CN.md)。
+上游的功能文档与各语言说明见[上游仓库](https://github.com/MHSanaei/3x-ui)（那里的安装命令不要照用）。

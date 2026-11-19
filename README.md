@@ -76,4 +76,4 @@ sponsor feature, builds the frontend and a static CGO binary, asserts `GET /` = 
 
 Based on [MHSanaei/3x-ui](https://github.com/MHSanaei/3x-ui) (GPL-3.0), redistributed under
 GPL-3.0; all upstream copyrights remain with their authors. Change notice: [NOTICE.md](NOTICE.md).
-Upstream READMEs are archived as `README.upstream*.md`.
+Upstream feature documentation lives in the [upstream repository](https://github.com/MHSanaei/3x-ui).
