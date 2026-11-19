@@ -56,6 +56,31 @@ sudo ufw allow 2053/tcp                                                         
 
 云服务器还要在控制台安全组放行。
 
+### 服务反复重启，`status=2/INVALIDARGUMENT`
+
+旧版官方安装留下的 `/etc/systemd/system/x-ui.service.d/10-xui-sandbox.conf` 里的
+sandbox 参数（`SystemCallFilter` 等）会和本二进制冲突，程序启动即退出：
+
+```bash
+sudo mv /etc/systemd/system/x-ui.service.d ~/x-ui-dropin.bak
+sudo systemctl daemon-reload
+sudo systemctl reset-failed x-ui
+sudo systemctl restart x-ui
+```
+
+脚本 2026-11-20 之后的版本会自动把旧 drop-in 移到 `.bak`。
+
+### 端口不是 2053
+
+老安装可能用的是随机端口，升级后会沿用。看真实端口：
+
+```bash
+sudo journalctl -u x-ui -n 50 --no-pager | grep "Web server running"
+sudo x-ui settings | head -20
+```
+
+新脚本安装完会直接从日志里读真实端口并打印访问地址。
+
 ### 忘记面板账号
 
 `sudo x-ui` → 菜单 `7`（Reset Username & Password）。

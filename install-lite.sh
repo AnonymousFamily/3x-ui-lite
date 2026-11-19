@@ -165,6 +165,12 @@ if [ -f "$DIR/x-ui.service.$SVC" ]; then
   install -m 644 "$DIR/x-ui.service.$SVC" "$SERVICE"
   ok "systemd unit installed ($SVC)"
 fi
+# A drop-in left by an older official install can abort startup (status=2).
+DROPIN=/etc/systemd/system/x-ui.service.d
+if [ -d "$DROPIN" ] && compgen -G "$DROPIN/*.conf" >/dev/null 2>&1; then
+  mv "$DROPIN" "$DROPIN.bak.$(date +%Y%m%d-%H%M%S)"
+  warn "moved legacy systemd drop-in aside"
+fi
 
 # --- port ------------------------------------------------------------------
 if [ -n "$PORT" ]; then
@@ -191,20 +197,26 @@ if systemctl is-active --quiet x-ui; then
 else
   warn "service failed to start; last log lines:"
   journalctl -u x-ui -n 30 --no-pager 2>/dev/null || true
+  if journalctl -u x-ui -n 10 --no-pager 2>/dev/null | grep -q '203/EXEC'; then
+    warn "203/EXEC = exec denied; fix the file label and retry:"
+    warn "  sudo restorecon -Rv $DIR && sudo systemctl reset-failed x-ui"
+  fi
   die "fix the error above, then: systemctl restart x-ui"
 fi
 
 # --- summary ---------------------------------------------------------------
-LISTEN_PORT="$PORT"
-if [ -z "$LISTEN_PORT" ]; then
-  LISTEN_PORT=$(grep -aoE 'port[^0-9]{0,4}[0-9]{2,5}' /etc/x-ui/x-ui.db 2>/dev/null | head -1 | grep -oE '[0-9]+$' || true)
-fi
-LISTEN_PORT="${LISTEN_PORT:-2053}"
+# The panel may keep a port from the previous install (often a random one),
+# so read the real listener from the log instead of assuming 2053.
+SCHEME=http
+LINE=$(journalctl -u x-ui -n 200 --no-pager -o cat 2>/dev/null | grep -E 'Web server running (HTTP|HTTPS) on' | tail -1 || true)
+case "$LINE" in *"HTTPS on"*) SCHEME=https ;; esac
+LISTEN_PORT=$(printf '%s' "$LINE" | grep -oE '[0-9]+$' || true)
+LISTEN_PORT="${LISTEN_PORT:-${PORT:-2053}}"
 
 say ""
 say "================================================================"
 say " 3X-UI Lite installed (sponsor-free build)"
-say " Panel : http://<server-ip>:${LISTEN_PORT}/"
+say " Panel : ${SCHEME}://<server-ip>:${LISTEN_PORT}/"
 if [ "$DB_EXISTED" = 1 ]; then
   say " Login : existing database kept, use your previous credentials"
 else
