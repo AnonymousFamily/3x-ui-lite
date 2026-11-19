@@ -79,6 +79,15 @@ jobs:
           bash -n src/x-ui.sh
           echo "menu guards in place"
 
+      - name: Point the updater at this fork
+        if: steps.up.outputs.exists == 'false'
+        run: |
+          set -euo pipefail
+          python3 self/scripts/apply-lite.py src
+          grep -q "AnonymousFamily/3x-ui-lite" src/internal/web/service/panel/panel.go
+          ! grep -q "repos/MHSanaei/3x-ui/releases" src/internal/web/service/panel/panel.go
+          echo "updater follows this fork"
+
       - name: Set up Go
         if: steps.up.outputs.exists == 'false'
         uses: actions/setup-go@v5
