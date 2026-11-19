@@ -18,12 +18,15 @@ Every upstream release is rebuilt here automatically.
 ## Install
 
 ```bash
-curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-lite.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash
 ```
 
 > This is the **only** install entry point for this project. Do **not** use the upstream
 > `bash <(curl -Ls .../mhsanaei/3x-ui/master/install.sh)` command — it installs the official build
 > and brings the sponsor placements back.
+
+> If `raw.githubusercontent.com` is unreachable, prefix the URL with gh-proxy:
+> `curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash`
 
 | Option | Command |
 | --- | --- |
@@ -66,7 +69,7 @@ Two ways, neither can install the upstream build:
 2. **Command line**: re-run the installer.
 
 ```bash
-curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-lite.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash
 ```
 
 > The menu's `Install` / `Update` / `Update Menu` / `Legacy` entries are disabled because

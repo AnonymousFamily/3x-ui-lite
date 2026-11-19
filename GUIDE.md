@@ -46,7 +46,7 @@
 ## 2. 一键安装
 
 ```bash
-curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-lite.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash
 ```
 
 脚本会依次：检查架构 → 下载 Release（直连失败自动切 gh-proxy / ghproxy 镜像）→ 校验 SHA256 →
@@ -70,7 +70,7 @@ curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-l
 固定版本（不跟随最高版）：
 
 ```bash
-curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-lite.sh \
+curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh \
   | sudo XUI_RELEASE_TAG=v3.11.0-nosponsor bash
 ```
 
@@ -161,7 +161,7 @@ sudo firewall-cmd --permanent --add-port=2053/tcp && sudo firewall-cmd --reload 
 **命令行升级**：
 
 ```bash
-curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-lite.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash
 ```
 
 > 命令行菜单里的 `Install` / `Update` / `Update Menu` / `Legacy` 已禁用（只打印提示并退出），

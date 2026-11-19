@@ -18,11 +18,14 @@
 ## 一键安装
 
 ```bash
-curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-lite.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash
 ```
 
 > 这是本项目**唯一**的安装入口。不要使用上游 README 或旧安装脚本里的
 > `bash <(curl -Ls .../mhsanaei/3x-ui/master/install.sh)` —— 那会装成官方版本，赞助商广告会回来。
+
+> 国内网络访问不了 `raw.githubusercontent.com` 时，在 URL 前加 gh-proxy 前缀：
+> `curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash`
 
 常用参数：
 
@@ -76,7 +79,7 @@ curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-l
 2. **命令行**：重跑安装命令，效果相同。
 
 ```bash
-curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-lite.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash
 ```
 
 > 命令行菜单里的 `Install` / `Update` / `Update Menu` / `Legacy` 已禁用（它们会拉上游官方包）。
