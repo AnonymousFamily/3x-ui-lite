@@ -1,79 +1,99 @@
-# 3X-UI Lite — sponsor-free build
+# 3X-UI Lite — 去赞助商版
 
-Unofficial build of the [3X-UI](https://github.com/MHSanaei/3x-ui) panel: same features, with the
-paid sponsor placements removed. Every upstream release is rebuilt here automatically.
+**独立维护**的 3X-UI 面板构建：功能与上游一致，只删掉付费赞助商广告位。
+上游每次发布新版本，本仓库会自动构建去赞助商版本并发布 Release。
 
-> Not affiliated with the upstream author. Please do not report issues with this build upstream.
+> 本项目独立维护，与上游作者**无隶属、无背书、无任何合作关系**，请勿把本构建的问题报到上游。
+> 上游 3X-UI 采用 GPL-3.0，本项目作为衍生分发**依法保留其版权声明与许可证**（见 `LICENSE`、`NOTICE.md`），
+> 除此之外与上游无其他关联。
 
 |  |  |
 | --- | --- |
-| Releases | [github.com/AnonymousFamily/3x-ui-lite/releases](https://github.com/AnonymousFamily/3x-ui-lite/releases) |
-| Full guide | [GUIDE.md](GUIDE.md) (Chinese) |
-| Changelog | [CHANGELOG.md](CHANGELOG.md) |
-| License | GPL-3.0, see [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md) |
-| Platform | Linux x86_64 + systemd |
+| 最新版本 | [Releases](https://github.com/AnonymousFamily/3x-ui-lite/releases) |
+| 完整说明 | [GUIDE.md](GUIDE.md) |
+| 变更记录 | [CHANGELOG.md](CHANGELOG.md) |
+| English | [README.en.md](README.en.md) |
+| 支持平台 | Linux x86_64 + systemd |
 
-## Install
-
-```bash
-curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-lite.sh | sudo bash
-```
-
-> This is **this repo's** installer. Do **not** use the upstream
-> `bash <(curl -Ls .../mhsanaei/3x-ui/master/install.sh)` command — that installs the official
-> build and brings the sponsor placements back.
-
-| Option | Command |
-| --- | --- |
-| Custom panel port | `... | sudo bash -s -- --port 8443` |
-| Pin a version | `... | sudo XUI_RELEASE_TAG=v3.11.0-nosponsor bash` |
-| Uninstall (keep data) | `... | sudo bash -s -- --uninstall` |
-| Uninstall and purge | `... | sudo bash -s -- --uninstall --purge` |
-
-The installer verifies SHA256, backs up the previous binary, handles SELinux labels and legacy
-systemd drop-ins, then reads the real port from the startup log.
-
-## What changed
-
-Compared to the matching upstream tag (currently `v3.11.0`), only the sponsor chain is removed:
-
-| Layer | Removed |
-| --- | --- |
-| Backend service | `internal/web/service/panel/sponsor.go` (remote `sponsors.json` fetch, 1h cache, logo proxy) and its tests |
-| Backend routes | `GET /sponsors`, `GET /sponsors/logo/:name` and handlers — no sponsor-related outbound requests remain |
-| Frontend pages | `frontend/src/pages/sponsors/` |
-| Frontend components | `frontend/src/components/sponsor/` (`SponsorCard`, `SponsorSlot`, stories) |
-| Frontend logic | `frontend/src/lib/sponsors.ts`, `api/queries/useSponsorsQuery.ts` |
-| Ad slots | `<SponsorSlot>` on the login page and dashboard |
-| Navigation | Sponsors entry in sidebar, command palette, page titles and routes |
-| Strings | `menu.sponsors`, `pages.sponsors.*` in all 14 locale files |
-| Generated | Regenerated TS types and OpenAPI (no `Sponsor` schema, no `/sponsors` path) |
-
-**Deliberately kept:** the sidebar `Donate` button (a donation link, not a sponsor slot), the
-MTProto `ad-tag` (Telegram sponsored-channel tag, a client feature), the read-only update check,
-and every other panel feature.
-
-Each release also ships `nosponsor-v<version>.patch` with the exact source diff.
-
-## Upgrade
-
-Re-run the installer (keeps `/etc/x-ui`, backs up the old binary):
+## 一键安装
 
 ```bash
 curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-lite.sh | sudo bash
 ```
 
-> Never use "Update panel" inside the UI or `x-ui update` — that replaces this build with the
-> upstream one.
+> 这是本项目**唯一**的安装入口。不要使用上游 README 或旧安装脚本里的
+> `bash <(curl -Ls .../mhsanaei/3x-ui/master/install.sh)` —— 那会装成官方版本，赞助商广告会回来。
 
-## Automation
+常用参数：
 
-Daily at 02:17 UTC (and on demand) the workflow resolves the latest upstream release, strips the
-sponsor feature, builds the frontend and a static CGO binary, asserts `GET /` = 200 and
-`GET /sponsors` = 404, then publishes a release. See [GUIDE.md](GUIDE.md) for details.
+| 用法 | 命令 |
+| --- | --- |
+| 指定面板端口 | `... | sudo bash -s -- --port 8443` |
+| 固定版本 | `... | sudo XUI_RELEASE_TAG=v3.11.0-nosponsor bash` |
+| 卸载（保留数据） | `... | sudo bash -s -- --uninstall` |
+| 卸载并删数据 | `... | sudo bash -s -- --uninstall --purge` |
 
-## License
+脚本会校验 SHA256、备份旧二进制、处理 SELinux 标签与旧 systemd drop-in，
+并从启动日志读出真实端口打印访问地址。
 
-Based on [MHSanaei/3x-ui](https://github.com/MHSanaei/3x-ui) (GPL-3.0), redistributed under
-GPL-3.0; all upstream copyrights remain with their authors. Change notice: [NOTICE.md](NOTICE.md).
-Upstream feature documentation lives in the [upstream repository](https://github.com/MHSanaei/3x-ui).
+## 变更内容
+
+相对上游对应版本（当前 `v3.11.0`），**只删除赞助商广告链路**：
+
+| 层 | 删除内容 |
+| --- | --- |
+| 后端服务 | `internal/web/service/panel/sponsor.go`（远程 `sponsors.json` 拉取、1 小时缓存、logo 代理）及测试 |
+| 后端路由 | `GET /sponsors`、`GET /sponsors/logo/:name` 及 handler；不再有任何赞助商相关的出站请求 |
+| 前端页面 | `frontend/src/pages/sponsors/`（赞助商页 + 样式） |
+| 前端组件 | `frontend/src/components/sponsor/`（`SponsorCard`、`SponsorSlot`、故事文件） |
+| 前端逻辑 | `frontend/src/lib/sponsors.ts`、`api/queries/useSponsorsQuery.ts` |
+| 广告位 | 登录页、仪表盘的 `<SponsorSlot>` |
+| 导航 | 侧边栏/命令面板/页面标题/路由中的「赞助商」入口 |
+| 文案 | 14 个语言包的 `menu.sponsors`、`pages.sponsors.*` |
+| 生成物 | 重新生成 TS 类型与 OpenAPI（无 `Sponsor` schema、无 `/sponsors` 路径） |
+
+**保留未动**：侧边栏 `Donate` 按钮（捐赠入口，不是赞助位）、MTProto `ad-tag`（Telegram 赞助频道标签，
+客户端功能）、面板更新检查（只读），以及入站 / 客户端 / 订阅 / 节点 / 主机 / 路由 / 出站 / 通知 / 多节点等全部功能。
+
+每个 Release 附带 `nosponsor-v<版本>.patch`，可逐行核对改动。
+
+## 自动部署
+
+- 每 **6 小时**检查一次上游 Release（也可在 Actions 页手动触发并指定上游 tag）
+- 有新版本则自动：去赞助商 → 前端构建 → 静态编译 → 冒烟断言 → 发布 `v<版本>-nosponsor`
+- 门禁：自检无赞助商标识、编译通过、运行后 `GET /` = 200 且 `GET /sponsors` = 404，任一失败不出包
+- 产物：`3x-ui-<版本>-nosponsor-linux-amd64.tar.gz`、`nosponsor-v<版本>.patch`、`SHA256SUMS.txt`
+
+机制细节见 [GUIDE.md](GUIDE.md)，实现见 `scripts/strip-sponsors.py` 与
+`.github/workflows/build-nosponsor.yml`。
+
+## 升级
+
+重跑安装命令即可（保留 `/etc/x-ui` 数据，自动备份旧二进制）：
+
+```bash
+curl -fsSL https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/install-lite.sh | sudo bash
+```
+
+> 不要在面板里点「更新面板」，也不要执行 `x-ui update` —— 那会覆盖成上游官方版本，广告回来。
+
+## 常用命令
+
+| 命令 | 作用 |
+| --- | --- |
+| `x-ui` | 交互菜单（端口、账号、证书、防火墙…） |
+| `x-ui status` / `start` / `stop` / `restart` | 服务状态与启停 |
+| `x-ui settings` | 查看端口、webBasePath、访问地址 |
+| `x-ui log` | 查看日志 |
+| `x-ui restart-xray` | 只重启 Xray |
+
+首次登录账号在启动日志里：
+
+```bash
+sudo journalctl -u x-ui -n 50 --no-pager | grep -i Username
+```
+
+## 许可证
+
+本项目作为 3X-UI 的衍生分发，遵循 **GPL-3.0**（见 `LICENSE`），保留上游版权声明；
+改动范围见 `NOTICE.md`。除许可证要求外，与上游作者无任何关联。

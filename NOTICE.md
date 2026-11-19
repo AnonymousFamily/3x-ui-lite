@@ -2,6 +2,10 @@
 
 This repository is an **unofficial modified build** of [3X-UI](https://github.com/MHSanaei/3x-ui).
 
+It is **independently maintained**: no affiliation, endorsement or cooperation with the upstream
+author. Apart from the GPL-3.0 license and copyright notices it is required to keep, nothing links
+this project to upstream.
+
 - Upstream: https://github.com/MHSanaei/3x-ui
 - Base version: tag `v3.11.0` (commit `c621ba9`, 2026-10-25)
 - Modification date: 2026-11-19

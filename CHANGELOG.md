@@ -34,5 +34,16 @@
 
 ---
 
+## 仓库整理 — 2026-11-19
+
+- 删除上游工程文档与文档站（`docs/`、`CLAUDE.md`、`CONTRIBUTING.md`、`REVIEW.md`、`SECURITY.md`）
+- 删除会安装官方版的上游脚本与模板（`install.sh`、`update.sh`、`deploy/`）
+- 删除上游 CI 配置与模板（Dependabot、Issue/PR 模板、FUNDING、`.github/claude`、`.oss-scanner`）
+- 删除未使用的品牌素材与 Windows 资源（`media/`、`winres/`、`windows_files/`、`.vscode/`）
+- README 重写为中文首页（英文见 `README.en.md`），新增本 `CHANGELOG.md` 与 `GUIDE.md`
+- 自动构建频率从每天一次改为**每 6 小时**一次
+
+---
+
 > 之后的版本由 `.github/workflows/build-nosponsor.yml` 自动生成；
 > 上游每次发版都会得到对应条目（格式：`v<上游版本>-nosponsor`）。

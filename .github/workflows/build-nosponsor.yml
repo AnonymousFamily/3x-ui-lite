@@ -4,7 +4,7 @@ name: Build sponsor-free release
 # the same source with the sponsor feature stripped and publishes a release here.
 on:
   schedule:
-    - cron: '17 2 * * *' # daily 02:17 UTC
+    - cron: '17 */6 * * *' # every 6 hours
   workflow_dispatch:
     inputs:
       upstream_tag:
