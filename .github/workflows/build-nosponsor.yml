@@ -1,0 +1,216 @@
+name: Build sponsor-free release
+
+# Watches upstream releases; when MHSanaei/3x-ui publishes a new tag it builds
+# the same source with the sponsor feature stripped and publishes a release here.
+on:
+  schedule:
+    - cron: '17 2 * * *' # daily 02:17 UTC
+  workflow_dispatch:
+    inputs:
+      upstream_tag:
+        description: 'Upstream tag to build (empty = latest upstream release)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nosponsor-release
+  cancel-in-progress: false
+
+env:
+  UPSTREAM: MHSanaei/3x-ui
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Resolve upstream tag and check for an existing release
+        id: up
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG='${{ inputs.upstream_tag }}'
+          if [ -z "$TAG" ]; then
+            TAG=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" \
+              "https://api.github.com/repos/$UPSTREAM/releases/latest" | jq -r .tag_name)
+          fi
+          [ -n "$TAG" ] && [ "$TAG" != "null" ] || { echo "::error::cannot resolve upstream tag"; exit 1; }
+          VER="${TAG#v}"
+          REL="v${VER}-nosponsor"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "ver=$VER" >> "$GITHUB_OUTPUT"
+          echo "rel=$REL" >> "$GITHUB_OUTPUT"
+          if gh release view "$REL" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "release $REL already exists, nothing to do"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "will build $REL from $TAG"
+          fi
+
+      - name: Checkout this repository (build script)
+        if: steps.up.outputs.exists == 'false'
+        uses: actions/checkout@v4
+        with:
+          path: self
+
+      - name: Checkout upstream at ${{ steps.up.outputs.tag }}
+        if: steps.up.outputs.exists == 'false'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.UPSTREAM }}
+          ref: ${{ steps.up.outputs.tag }}
+          path: src
+          fetch-depth: 1
+
+      - name: Strip the sponsor feature
+        if: steps.up.outputs.exists == 'false'
+        run: python3 self/scripts/strip-sponsors.py src
+
+      - name: Set up Go
+        if: steps.up.outputs.exists == 'false'
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: src/go.mod
+          cache-dependency-path: src/go.sum
+
+      - name: Set up Node
+        if: steps.up.outputs.exists == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: src/.nvmrc
+          cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
+
+      - name: Build the frontend
+        if: steps.up.outputs.exists == 'false'
+        working-directory: src/frontend
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+          npm run gen:zod
+          npm run build
+
+      - name: Format transformed Go files
+        if: steps.up.outputs.exists == 'false'
+        working-directory: src
+        run: |
+          set -euo pipefail
+          files=$(git diff --name-only --diff-filter=d -- '*.go' || true)
+          if [ -n "$files" ]; then gofmt -w $files; fi
+
+      - name: Build the panel (static, CGO)
+        if: steps.up.outputs.exists == 'false'
+        working-directory: src
+        run: |
+          set -euo pipefail
+          mkdir -p ../dist
+          export CGO_ENABLED=1
+          go build -trimpath -buildvcs=false \
+            -tags "netgo osusergo sqlite_omit_load_extension" \
+            -ldflags="-w -s -linkmode external -extldflags '-static'" \
+            -o ../dist/x-ui .
+          file ../dist/x-ui
+
+      - name: Smoke test the result
+        if: steps.up.outputs.exists == 'false'
+        run: |
+          set -euo pipefail
+          chmod +x dist/x-ui
+          rm -rf smoke-db && mkdir -p smoke-db
+          XUI_DB_FOLDER="$PWD/smoke-db" XUI_PORT=2099 dist/x-ui > smoke.log 2>&1 &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true' EXIT
+          for _ in $(seq 1 40); do
+            sleep 1
+            curl -sf -o /dev/null http://127.0.0.1:2099/ && break
+          done
+          root=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:2099/)
+          sponsors=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:2099/sponsors)
+          echo "GET / = $root ; GET /sponsors = $sponsors"
+          [ "$root" = "200" ] || { cat smoke.log; echo "::error::panel did not serve the login page"; exit 1; }
+          [ "$sponsors" = "404" ] || { echo "::error::sponsor route still present"; exit 1; }
+
+      - name: Fetch Xray, mtg-multi and geo data
+        if: steps.up.outputs.exists == 'false'
+        run: |
+          set -euo pipefail
+          mkdir -p bin
+          XRAY_VER=v26.10.21
+          curl -fsSL -o xray.zip "https://github.com/XTLS/Xray-core/releases/download/$XRAY_VER/Xray-linux-64.zip"
+          python3 -c "import zipfile;zipfile.ZipFile('xray.zip').extractall('xray')"
+          cp xray/xray bin/xray-linux-amd64 && chmod +x bin/xray-linux-amd64
+
+          MTG_TAG=$(curl -fsSL -o /dev/null -w '%{url_effective}' "https://github.com/mhsanaei/mtg-multi/releases/latest" | sed -n 's#.*/tag/##p')
+          MTG_PKG="mtg-multi-${MTG_TAG#v}-linux-amd64"
+          curl -fsSL -o mtg.tar.gz "https://github.com/mhsanaei/mtg-multi/releases/download/$MTG_TAG/$MTG_PKG.tar.gz"
+          tar -xzf mtg.tar.gz
+          cp "$MTG_PKG/mtg-multi" bin/mtg-linux-amd64 && chmod +x bin/mtg-linux-amd64
+
+          curl -fsSL -o bin/geoip.dat  "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat"
+          curl -fsSL -o bin/geosite.dat "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
+          ls -lh bin
+
+      - name: Package release assets
+        if: steps.up.outputs.exists == 'false'
+        run: |
+          set -euo pipefail
+          NAME="3x-ui-${{ steps.up.outputs.ver }}-nosponsor"
+          mkdir -p "pkg/$NAME/bin"
+          cp dist/x-ui "pkg/$NAME/x-ui"
+          cp src/x-ui.sh "pkg/$NAME/"
+          cp src/x-ui.service.debian src/x-ui.service.arch src/x-ui.service.rhel "pkg/$NAME/"
+          cp bin/* "pkg/$NAME/bin/"
+          chmod +x "pkg/$NAME/x-ui" "pkg/$NAME/x-ui.sh" "pkg/$NAME/bin/"*
+          tar -czf "dist/$NAME-linux-amd64.tar.gz" -C pkg "$NAME"
+          ( cd src && git diff > "../dist/nosponsor-v${{ steps.up.outputs.ver }}.patch" )
+          ( cd dist && sha256sum x-ui "$NAME-linux-amd64.tar.gz" > SHA256SUMS.txt )
+          ls -lh dist
+
+      - name: Create the release
+        if: steps.up.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          VER='${{ steps.up.outputs.ver }}'
+          REL='${{ steps.up.outputs.rel }}'
+          TAG='${{ steps.up.outputs.tag }}'
+          python3 - "$VER" "$TAG" "$GITHUB_REPOSITORY" > notes.md <<'PY'
+          import pathlib, sys
+          ver, tag, repo = sys.argv[1], sys.argv[2], sys.argv[3]
+          sums = pathlib.Path("dist/SHA256SUMS.txt").read_text(encoding="utf-8").strip()
+          print(f"""## 3X-UI v{ver} — 去除赞助商构建（非官方）
+
+          - 上游：`MHSanaei/3x-ui` tag `{tag}`
+          - 仅移除付费赞助位：登录页/仪表盘广告卡、侧边栏「赞助商」页、`GET /sponsors` 与 logo 代理、远程 `sponsors.json` 拉取
+          - 其余功能原样保留；许可证 GPL-3.0（见仓库 LICENSE / NOTICE.md）
+          - 构建脚本：`.github/workflows/build-nosponsor.yml` + `scripts/strip-sponsors.py`
+
+          ### 附件
+
+          - `3x-ui-{ver}-nosponsor-linux-amd64.tar.gz` — 面板 + Xray + mtg + geo 数据
+          - `nosponsor-v{ver}.patch` — 相对上游的源码改动
+          - `SHA256SUMS.txt`
+
+          ```
+          {sums}
+          ```
+
+          ### 一键安装
+
+          ```bash
+          curl -fsSL https://cdn.jsdelivr.net/gh/{repo}@main/install-lite.sh | sudo bash
+          ```
+          """)
+          PY
+          gh release create "$REL" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "v$VER without sponsors" \
+            --notes-file notes.md \
+            "dist/3x-ui-$VER-nosponsor-linux-amd64.tar.gz" \
+            "dist/nosponsor-v$VER.patch" \
+            "dist/SHA256SUMS.txt"

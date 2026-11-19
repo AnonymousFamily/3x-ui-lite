@@ -133,6 +133,11 @@ curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/ins
 3. `入站列表` → 添加入站 → `客户端` 加用户 → 复制链接/订阅
 4. 可选：`x-ui` 菜单 `20` 申请证书开 HTTPS
 
+## 自动化
+
+本仓库会每天自动检查上游 `MHSanaei/3x-ui` 的新版本，自动去赞助商、编译并发 release。
+想手动跑一次或了解机制，见 [AUTOMATION.md](AUTOMATION.md)。
+
 ## 没有网络 / 想手动装
 
 从 [Releases](https://github.com/AnonymousFamily/3x-ui-lite/releases/tag/v3.11.0-nosponsor) 下载
