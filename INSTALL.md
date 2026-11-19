@@ -1,0 +1,86 @@
+# 安装（一键脚本）
+
+## 支持环境
+
+- Linux **x86_64 / amd64**、systemd
+- Ubuntu / Debian / Linux Mint、CentOS / RHEL / Rocky / Alma、Arch
+- 需要 root（脚本内部用 sudo 跑）
+
+## 一键安装
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash
+```
+
+指定面板端口（默认沿用 2053 或原有设置）：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash -s -- --port 8443
+```
+
+脚本按顺序做这些事：
+
+1. 检查架构（非 x86_64 直接退出并提示）与 curl
+2. 从本仓库 release 下载安装包，**校验 SHA256**（失败即中止）
+3. 停掉正在运行的 `x-ui`
+4. 把旧二进制备份成 `x-ui.bak.<时间戳>`
+5. 铺文件到 `/usr/local/x-ui`（含 `bin/xray-linux-amd64`、`bin/mtg-linux-amd64`、geo 数据）
+6. 装 `x-ui` 管理脚本到 `/usr/bin/x-ui`，按发行版选 systemd unit
+7. `enable --now` 启动，等 2 秒确认 active
+8. 打印面板地址；全新安装时从 journal 抓取随机生成的账号密码
+
+数据始终在 `/etc/x-ui/x-ui.db`，升级不会动它。
+
+## 升级
+
+重跑同一条命令即可（会备份旧二进制、保留数据库与设置）：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash
+```
+
+> 不要用面板里的「更新面板」或 `x-ui update`：那会拉上游官方包，赞助商广告会回来。
+
+## 卸载
+
+```bash
+# 保留 /etc/x-ui 数据
+curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash -s -- --uninstall
+
+# 连数据一起删
+curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash -s -- --uninstall --purge
+```
+
+## 参数
+
+| 参数 | 作用 |
+| --- | --- |
+| `--port N` | 安装后把面板端口改为 N |
+| `--dir PATH` | 安装目录（默认 `/usr/local/x-ui`） |
+| `--no-start` | 只铺文件，不 enable/start 服务 |
+| `--prefix PATH` | 测试用：装到指定目录，不写 systemd、不需要 root |
+| `--uninstall` | 卸载（默认保留数据） |
+| `--purge` | 配合 `--uninstall`，连 `/etc/x-ui`、`/var/log/x-ui` 一起删 |
+| `-h, --help` | 帮助 |
+
+## 装完之后
+
+1. 放行面板端口（`ufw allow 8443/tcp` 或 firewalld、云安全组）
+2. 打开 `http://服务器IP:端口/`，用打印出的账号登录
+3. `入站列表` → 添加入站 → `客户端` 加用户 → 复制链接/订阅
+4. 可选：`x-ui` 菜单 `20` 申请证书开 HTTPS
+
+## 没有网络 / 想手动装
+
+从 [Releases](https://github.com/AnonymousFamily/3x-ui-lite/releases/tag/v3.11.0-nosponsor) 下载
+`3x-ui-3.11.0-nosponsor-linux-amd64.tar.gz` 上传到服务器，然后：
+
+```bash
+tar -xzf 3x-ui-3.11.0-nosponsor-linux-amd64.tar.gz
+sudo install -d /usr/local/x-ui
+sudo cp -a 3x-ui-3.11.0-nosponsor/. /usr/local/x-ui/
+sudo chmod +x /usr/local/x-ui/x-ui /usr/local/x-ui/bin/* /usr/local/x-ui/x-ui.sh
+sudo install -m 755 /usr/local/x-ui/x-ui.sh /usr/bin/x-ui
+sudo install -m 644 /usr/local/x-ui/x-ui.service.debian /etc/systemd/system/x-ui.service
+sudo systemctl daemon-reload && sudo systemctl enable --now x-ui
+```
