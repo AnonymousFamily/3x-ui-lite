@@ -10,6 +10,7 @@ Every upstream release is rebuilt here automatically.
 |  |  |
 | --- | --- |
 | Releases | [github.com/AnonymousFamily/3x-ui-lite/releases](https://github.com/AnonymousFamily/3x-ui-lite/releases) |
+| Features | [FEATURES.md](FEATURES.md) (Chinese) |
 | Full guide | [GUIDE.md](GUIDE.md) (Chinese) |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) |
 | 中文 | [README.md](README.md) |

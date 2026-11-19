@@ -10,6 +10,7 @@
 |  |  |
 | --- | --- |
 | 最新版本 | [Releases](https://github.com/AnonymousFamily/3x-ui-lite/releases) |
+| 功能与特点 | [FEATURES.md](FEATURES.md) |
 | 完整说明 | [GUIDE.md](GUIDE.md) |
 | 变更记录 | [CHANGELOG.md](CHANGELOG.md) |
 | English | [README.en.md](README.en.md) |
