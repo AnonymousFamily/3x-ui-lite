@@ -44,7 +44,7 @@ const (
 	// Updates ship from this fork's own releases, never from upstream: the
 	// upstream package would bring the sponsor placements back.
 	panelUpdateRepo      = "AnonymousFamily/3x-ui-lite"
-	panelUpdaterURL      = "https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/update-lite.sh"
+	panelUpdaterURL      = "https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/update-lite.sh"
 	maxPanelUpdaterBytes = 2 << 20
 	// devReleaseTag is the fixed-tag rolling pre-release the CI force-moves to the
 	// newest main commit; the dev update channel installs from it.

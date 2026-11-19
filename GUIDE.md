@@ -154,14 +154,31 @@ sudo firewall-cmd --permanent --add-port=2053/tcp && sudo firewall-cmd --reload 
 
 ## 4. 升级
 
-**面板内更新**：版本检查已改为查询**本仓库**的 Release。上游发新版 → 本仓库自动产出
-`v<版本>-nosponsor` → 面板提示有更新 → 点「更新面板」即下载并安装本仓库的包
-（`update-lite.sh`：校验 SHA256、备份旧二进制、重启服务）。不会安装上游版本。
+**面板与 Xray 内核分开更新，互不影响：**
+
+| 更新对象 | 怎么更新 | 影响范围 |
+| --- | --- | --- |
+| 面板 `x-ui` | 面板「更新面板」按钮，或重跑安装命令 | 只替换面板文件与 `x-ui.sh`，**不碰 `bin/`** |
+| Xray 内核 | 面板「Xray 版本」里随时切换 | 只换 `bin/xray-linux-amd64`，面板不动 |
+
+面板更新时如果你选过某个 Xray 版本，它会被保留。想把内核恢复成随包版本：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash -s -- --reset-xray
+```
+
+**面板内更新**：版本检查查询本仓库的 Release。上游发新版 → 本仓库自动产出
+`v<版本>-nosponsor` → 面板提示有更新 → 点「更新面板」即下载本仓库的包
+（`update-lite.sh`：校验 SHA256、备份旧面板二进制、重启服务），**不会碰 `bin/` 里的内核**。
 
 **命令行升级**：
 
 ```bash
+# 只更新面板（保留内核）
 curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash
+
+# 面板 + 随包内核
+curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash -s -- --reset-xray
 ```
 
 > 命令行菜单里的 `Install` / `Update` / `Update Menu` / `Legacy` 已禁用（只打印提示并退出），

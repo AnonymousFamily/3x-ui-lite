@@ -26,6 +26,7 @@ NO_START=0
 PREFIX=""
 UNINSTALL=0
 PURGE=0
+RESET_XRAY=0
 
 say()  { printf '%s\n' "$*"; }
 ok()   { printf '  \033[32m✓\033[0m %s\n' "$*"; }
@@ -45,6 +46,8 @@ Options:
   --port N      panel port after install
   --dir PATH    install directory (default /usr/local/x-ui)
   --no-start    install files only, do not enable/start the service
+  --reset-xray  also replace bin/ with the packaged Xray core (default: keep
+                the core already installed, so a panel upgrade never changes it)
   --prefix PATH test mode: install under PATH without root/systemd
   -h, --help    this help
 EOF
@@ -56,6 +59,7 @@ while [ $# -gt 0 ]; do
     --dir) DIR="${2:-}"; shift 2 ;;
     --no-start) NO_START=1; shift ;;
     --prefix) PREFIX="${2:-}"; DIR="${2:-}"; NO_START=1; shift 2 ;;
+    --reset-xray) RESET_XRAY=1; shift ;;
     --uninstall) UNINSTALL=1; shift ;;
     --purge) PURGE=1; shift ;;
     -h|--help) usage; exit 0 ;;
@@ -144,11 +148,26 @@ if [ -f "$DIR/x-ui" ]; then
   cp -p "$DIR/x-ui" "$DIR/x-ui.bak.$(date +%Y%m%d-%H%M%S)"
   ok "previous binary backed up"
 fi
-# Unpack straight into place: cp -a would carry the /tmp SELinux label, and
-# systemd then refuses to exec the binary (status=203/EXEC).
-tar -xzf "$TMP/$TARBALL" -C "$DIR" --strip-components=1
+
+# Panel files are installed one by one so bin/ can stay untouched: the Xray
+# core belongs to the panel's own version switcher, not to a panel upgrade.
+install -m 755 "$TMP/$PKG/x-ui" "$DIR/x-ui"
+install -m 755 "$TMP/$PKG/x-ui.sh" "$DIR/x-ui.sh"
 chmod +x "$DIR/x-ui" "$DIR/x-ui.sh"
-find "$DIR/bin" -maxdepth 1 -type f -exec chmod +x {} \; 2>/dev/null || true
+
+KEEP_CORE=0
+if [ "$RESET_XRAY" = 0 ] && [ -d "$DIR/bin" ] && [ -n "$(ls -A "$DIR/bin" 2>/dev/null)" ]; then
+  KEEP_CORE=1
+fi
+if [ "$KEEP_CORE" = 1 ]; then
+  ok "existing Xray core kept (use --reset-xray to replace it)"
+else
+  rm -rf "$DIR/bin"
+  cp -a "$TMP/$PKG/bin" "$DIR/bin"
+  find "$DIR/bin" -maxdepth 1 -type f -exec chmod +x {} \; 2>/dev/null || true
+  ok "Xray core installed from the package"
+fi
+
 if command -v restorecon >/dev/null 2>&1; then
   restorecon -R "$DIR" >/dev/null 2>&1 || true
 fi

@@ -72,14 +72,18 @@ curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/ins
 
 ## 升级
 
-两种方式，都不会装回上游版本：
+**面板更新与 Xray 内核更新是分开的两件事**：
 
-1. **面板内更新**（推荐）：本仓库出了新的 `-nosponsor` 版本后，面板会提示有更新；
-   点「更新面板」即下载并安装**本仓库**的包（走 `update-lite.sh`，校验 SHA256、自动备份旧二进制并重启）。
-2. **命令行**：重跑安装命令，效果相同。
+- **面板**：面板里的「更新面板」（或重跑下面的命令）只替换面板文件，**不会动 `bin/` 里的 Xray 内核**
+- **内核**：在面板的「Xray 版本」里随时切换，所选版本会一直保留，面板升级不会覆盖它
+- 想把内核恢复成随包版本：加 `--reset-xray`
 
 ```bash
+# 只更新面板（保留你选的 Xray 版本）
 curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash
+
+# 面板 + 内核一起换回随包版本
+curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash -s -- --reset-xray
 ```
 
 > 命令行菜单里的 `Install` / `Update` / `Update Menu` / `Legacy` 已禁用（它们会拉上游官方包）。

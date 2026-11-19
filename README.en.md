@@ -61,15 +61,19 @@ Each release ships `nosponsor-v<version>.patch` with the exact source diff.
 
 ## Upgrade
 
-Two ways, neither can install the upstream build:
+**Panel updates and Xray core updates are independent**:
 
-1. **In-panel update** (recommended): when this repo publishes a newer `-nosponsor`
-   release the panel shows an update; clicking it downloads and installs **this repo's**
-   package via `update-lite.sh` (SHA256 check, binary backup, service restart).
-2. **Command line**: re-run the installer.
+- **Panel**: the in-panel "Update panel" button (or re-running the installer) replaces panel files only —
+  it never touches the Xray core in `bin/`
+- **Core**: switch it whenever you like under "Xray version"; your choice survives panel upgrades
+- Restore the packaged core with `--reset-xray`
 
 ```bash
+# panel only (keeps the Xray version you selected)
 curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash
+
+# panel + packaged core
+curl -fsSL https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/install-lite.sh | sudo bash -s -- --reset-xray
 ```
 
 > The menu's `Install` / `Update` / `Update Menu` / `Legacy` entries are disabled because

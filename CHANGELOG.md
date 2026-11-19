@@ -49,6 +49,8 @@
   更新时运行本仓库的 `update-lite.sh` 安装去赞助商包，不再访问上游安装器
 - 构建流程新增 `scripts/apply-lite.py`：发布包从上游源码编译，该脚本在构建时把更新逻辑指向本仓库，
   未生效则构建失败（此前仓库里的 Go 改动不会进包）
+- **面板更新与内核更新彻底分离**：`update-lite.sh` 与 `install-lite.sh` 默认只换面板文件，
+  `bin/xray-linux-amd64`（及 mtg、geo 数据）保持用户当前选择；需要恢复随包内核时加 `--reset-xray`
 
 ---
 

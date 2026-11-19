@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 PANEL = "internal/web/service/panel/panel.go"
-UPDATER = "https://cdn.jsdelivr.net/gh/AnonymousFamily/3x-ui-lite@main/update-lite.sh"
+UPDATER = "https://raw.githubusercontent.com/AnonymousFamily/3x-ui-lite/main/update-lite.sh"
 REPO = "AnonymousFamily/3x-ui-lite"
 UPSTREAM = "MHSanaei/3x-ui"
 
