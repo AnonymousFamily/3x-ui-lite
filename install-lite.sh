@@ -224,10 +224,19 @@ case "$LINE" in *"HTTPS on"*) SCHEME=https ;; esac
 LISTEN_PORT=$(printf '%s' "$LINE" | grep -oE '[0-9]+$' || true)
 LISTEN_PORT="${LISTEN_PORT:-${PORT:-2053}}"
 
+# The panel may also sit behind a custom webBasePath; read it so the printed
+# URL is the one that actually answers (a bare "/" would 404).
+BASE_PATH=$("$DIR/x-ui" setting -show 2>/dev/null | sed -n 's/^webBasePath:[[:space:]]*//p' | head -1 || true)
+BASE_PATH="${BASE_PATH:-/}"
+case "$BASE_PATH" in
+  */) ;;
+  *) BASE_PATH="$BASE_PATH/" ;;
+esac
+
 say ""
 say "================================================================"
 say " 3X-UI Lite installed (sponsor-free build)"
-say " Panel : ${SCHEME}://<server-ip>:${LISTEN_PORT}/"
+say " Panel : ${SCHEME}://<server-ip>:${LISTEN_PORT}${BASE_PATH}"
 if [ "$DB_EXISTED" = 1 ]; then
   say " Login : existing database kept, use your previous credentials"
 else
@@ -241,5 +250,8 @@ if [ "$DB_EXISTED" = 0 ]; then
 fi
 say ""
 say "Next: allow the port in your firewall / cloud security group,"
-say "then add inbounds in the panel. Do NOT use 'x-ui update' — it"
-say "would replace this build with the upstream one (sponsors back)."
+say "then add inbounds in the panel."
+say ""
+say "Upgrades: the panel's 'Update panel' button installs this repo's newest"
+say "sponsor-free release. The menu's Install/Update entries are disabled on"
+say "purpose (they would fetch the upstream build)."
